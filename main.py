@@ -1,16 +1,108 @@
 import serial
 import time
+import requests
 import numpy as np
 import matplotlib.pyplot as plt
+import urllib3
+urllib3.disable_warnings()
+
+from firebase import firebase
+firebase = firebase.FirebaseApplication('https://smartclips.firebaseio.com/', None)
+userId = ""
+username = ""
+connected = False
 def main():
-    from firebase import firebase
-    connected = False
-    try:
-        firebase = firebase.FirebaseApplication('https://smartclips.firebaseio.com/', None)
-        result = firebase.get('/Users', None)
-        print("\n\n Hello "+ result['Name'] + ". Ready for your workout? \n\n");
-    except:
-        print("Error connecting to firebase");
+    global userId
+    global usernamew
+   # try:
+    result = firebase.get('/Users', None)
+    print("Hello, please select a user or type NEW to create a new user")
+    namedict = [];
+    count = 0;
+    for res in result:
+        namedict.append(res)
+        children = firebase.get('/Users/'+res, None)
+        print(str(count) +" - " + children["name"])
+        
+        count = count + 1;
+    user = raw_input("Select user by number: ")
+    if user == "NEW":
+        createNewUser()
+    else:
+        userId = namedict[int(user)]
+        username = firebase.get('/Users/'+userId + "/name", None)
+    print("User " + username + " logged in with id" + userId)
+    # except Exception:
+    #     print("Error connecting to firebase - check internet connection");
+    printHelp()
+    dict = {'1' : arduinoConnect, '2': manualInput, '3':viewLifts,
+            '4':addCalories,'5':foodLog, "HELP": printHelp}
+    while(1):
+        the_input = raw_input("Choose a number: ")
+        try:
+            if the_input == "QUIT":
+                print("Goodbye")
+                return
+            dict[the_input]()
+        except Exception:
+            print("Malformed Input")
+    #func()
+    arduinoConnect()
+
+def foodLog():
+    global userId
+    logs = firebase.get('/DayFoodLog', None)
+    for day in logs:
+        dayInfo = firebase.get('/DayFoodLog/'+day, None)
+        if dayInfo["UserID"] == userId:
+            print("Date: " + dayInfo["date"] + " Intake: " + dayInfo['CaloricIntake'])
+
+def addCalories():
+    global userId
+    date = raw_input("Enter Date in mm/dd/yyyy: ")
+    intake = raw_input("Enter Calories: ")
+    newFood = {"date":date,"CaloricIntake":intake, "UserID":userId}
+    res = firebase.post("/DayFoodLog", newFood)
+    print("Food Log Recorded")
+
+def printHelp():
+    print("Commands: \n 1 - Begin Counting Reps \n 2 - Manually Add Lift \n 3 - View lifts \n 4 - Add daily calories \n 5 - Show food log \n HELP - see this message \n QUIT - Quit the program");
+
+def viewLifts():
+    global userId
+    lifts = firebase.get('/Lifts', None)
+    for lift in lifts:
+        liftInfo = firebase.get('/Lifts/'+lift, None)
+        if liftInfo["UserID"] == userId:
+            print("Date: " + liftInfo["date"] + " Lift: " + liftInfo['name'] + " Sets: " + liftInfo['sets'] + " Weight: " + liftInfo['weight'])
+
+
+def createNewUser():
+    global userId
+    global usernamew
+    name = raw_input("Enter Name: ")
+    email = raw_input("Enter Email: ")
+    weight = raw_input("Enter Weight: ")
+    age = raw_input("Enter Age: ")
+    newUser = {"name":name,"email":email,"weight":weight,"age":age}
+    username = name;
+    res = firebase.post("/Users", newUser)
+    userId = res
+
+def manualInput():
+    global userId
+    global usernamew
+    name = raw_input("Enter Lift Name: ")
+    reps = raw_input("Enter Reps: ")
+    sets = raw_input("Enter Sets: ")
+    weight = raw_input("Enter Weight: ")
+    date = raw_input("Enter Date in mm/dd/yyyy: ")
+    newLif = {"name":name,"reps":reps,"weight":weight,"sets":sets,"date":date, "UserID":userId}
+    res = firebase.post("/Lifts", newLif)
+    print("Lift Recorded")
+
+
+def arduinoConnect():
     print("Connecting to Arduino Board");
     try:
         arduino = serial.Serial('COM27', 57600, timeout=.1)
