@@ -1,0 +1,4 @@
+INDEX VERSION 1.126+C:\Users\roccoma\Desktop\CSSE 481\smartclips\.metadata\.plugins\org.eclipse.jdt.core
+1346488242.index
+1284074322.index
+4086112071.index

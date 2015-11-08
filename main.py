@@ -79,7 +79,7 @@ def viewLifts():
 
 def createNewUser():
     global userId
-    global usernamew
+    global username
     name = raw_input("Enter Name: ")
     email = raw_input("Enter Email: ")
     weight = raw_input("Enter Weight: ")
