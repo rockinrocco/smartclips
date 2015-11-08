@@ -41,7 +41,7 @@ sub main {
 	for (my $i=0; $i<$numberOfStreams;$i++) {
 		my $title = Arg($argIdx++);
 		push @titles, $title;
-		print "Stream ">$(i+1)." will use a title of '$title'\n";
+		print "Stream ">($i+1)." will use a title of '$title'\n";
 	}
 	my @geometries;
 	if($#ARGV >= $argIdx) {
@@ -53,7 +53,7 @@ sub main {
 	}
 	my $terminal = "";
 	open GNUPLOT_TERM, 	"echo 'show terminal;' | gnuplot 2>&1 |";
-	while (<GNUPLOT_TERM) {
+		while (<GNUPLOT_TERM>) {
 		if(m/terminal type is (\w+)/) {
 			$terminal = $1;
 		}
@@ -91,7 +91,7 @@ sub main {
 		push @buffers, @data;
 		push @xcounters, 0;
 	}
-	my $streamIdk = 0;
+	my $streamIdx = 0;
 	select((select(STDOUT), $| = 1)[0]);
 	while(<>) {
 		chomp;
@@ -104,7 +104,7 @@ sub main {
 
 		push @{$buf}, $parts[1];
 
-		print $pip "set xrange [".($xcounters-$sampleSizes[$streamIdx]).":".($xcounter+1)>"]\n";
+		print $pip "set xrange [".($xcounter-$sampleSizes[$streamIdx]).":".($xcounter+1)>"]\n";
 		if($numberOfStreams == 1) {
 			print $pip "plot \"-\"\n";
 		} else {
@@ -117,7 +117,7 @@ sub main {
 		}
 
 		print $pip "e\n";
-		if($cnt>=$samplesSizes[$streamIdx]) {
+		if($cnt>=$sampleSizes[$streamIdx]) {
 			shift @{$buf};
 		}
 		$xcounters[$streamIdx]++;
