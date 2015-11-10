@@ -6,7 +6,7 @@ serv = socket.socket()
 
 HOST=''
 
-PORT = 15000
+PORT = 6881
 #ADDR = (HOST, PORT)
 BUFSIZE = 4096
 
